@@ -1,29 +1,23 @@
 body {
   background-color: lightblue;
   width: 90%;
-  margin-left: 5%;
-}
+  margin-left: 5%; }
 
 h1 {
-  text-align: center;
-}
+  text-align: center; }
 
 h2 {
-  text-align: center;
-}
+  text-align: center; }
 
-
-.mainPanel{
-  display:flex;
+.mainPanel {
+  display: flex;
   flex-wrap: nowrap;
   flex-direction: row;
   justify-content: space-around;
-  margin-top: 15px;
-}
+  margin-top: 15px; }
 
-.list{
+.list {
   display: flex;
   flex-direction: column;
   background-color: white;
-  width: 30%;
-}
+  width: 30%; }

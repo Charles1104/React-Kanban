@@ -1,7 +1,7 @@
 /*jshint esversion:6*/
 module.exports = function(sequelize, DataTypes) {
   var Card = sequelize.define("Card", {
-        title: {
+        name: {
           type: DataTypes.STRING,
           allowNull: false
         },
@@ -13,17 +13,22 @@ module.exports = function(sequelize, DataTypes) {
           type: DataTypes.STRING,
           allowNull: false
         },
-        created_by: {
-          type: DataTypes.STRING,
+        assigned_to: {
+          type: DataTypes.INTEGER,
           allowNull: false
         }
       }, {
       classMethods: {
         associate: function(models) {
-          Card.belongsTo(models.User);
+          Card.belongsTo(models.User, {
+            foreignKey:{
+              name: 'created_by',
+              allowNull: false
+            }
+          });
         }
       }
-    });
+  });
 
   return Card;
 };

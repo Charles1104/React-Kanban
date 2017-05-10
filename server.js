@@ -22,8 +22,8 @@ app.get('/*', (req, res) => {
   });
 });
 
-// clears db every time
-// db.sequelize.sync({force:true});
+
+db.sequelize.sync({force:true});
 
 app.listen(PORT, () =>{
   console.log(`Listening on ${PORT}`);

@@ -1,5 +1,6 @@
 /*jshint esversion: 6 */
 
+
 const reactContainer = document.getElementById("root");
 
 //DATABASE RETRIEVAL
@@ -17,7 +18,7 @@ const getCardsFromDb= () => new Promise((resolve, reject) => {
       card_id : '2',
       title : 'Study Python',
       priority: 'Normal',
-      status: 'queue',
+      status: 'progress',
       created_by: 'Thomas',
       assigned_to: 'Henry'
     },
@@ -25,7 +26,7 @@ const getCardsFromDb= () => new Promise((resolve, reject) => {
       card_id : '3',
       title : 'Study PHP',
       priority: 'Low',
-      status: 'queue',
+      status: 'done',
       created_by: 'Taylor',
       assigned_to: 'David'
     }
@@ -35,20 +36,48 @@ const getCardsFromDb= () => new Promise((resolve, reject) => {
 
 //TEMPLATE FOR EACH CARD DISPLAY
 const Card = (props) => (
-  <li>
+  <div>
     <h3>{ props.card.title }</h3>
     <p>{ props.card.priority }</p>
-  </li>
+  </div>
 );
 
-const CardList = ({ cards }) => (
-  <ul>
+// TEMPLATE FOR THREE COLMUNS
+const CardListQueue = ({ cards }) => (
+  <div className="list">
+    <h2>QUEUE</h2>
     { cards
       .map( card => <Card card={card} /> )
     }
-  </ul>
+  </div>
 );
 
+const CardListProgress = ({ cards }) => (
+  <div className="list">
+  <h2>PROGRESS</h2>
+    { cards
+      .map( card => <Card card={card} /> )
+    }
+  </div>
+);
+
+const CardListDone = ({ cards }) => (
+  <div className="list">
+  <h2>DONE</h2>
+    { cards
+      .map( card => <Card card={card} /> )
+    }
+  </div>
+);
+
+// TEMPLATE FOR MAIN DIV
+const KanbanMap = ({ cards }) => (
+  <div className="mainPanel">
+    <CardListQueue cards={cards.filter(card => card.status === 'queue')}/>
+    <CardListProgress cards={cards.filter(card => card.status === 'progress')}/>
+    <CardListDone cards={cards.filter(card => card.status === 'done')}/>
+  </div>
+);
 
 //CLASS NEW CARD
 
@@ -56,16 +85,19 @@ class NewCardForm extends React.Component {
 
   constructor(props){
     super(props);
-    console.log(props);
 
     // set the initial state
     this.state = {
       title: "",
-      priority: ""
+      priority: "",
+      created_by: "",
+      assigned_to: ""
     };
 
     this.handleTitleChange = this.handleTitleChange.bind(this);
     this.handlePriorityChange = this.handlePriorityChange.bind(this);
+    this.handleCreatedByChange = this.handleCreatedByChange.bind(this);
+    this.handleAssignedToChange = this.handleAssignedToChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
@@ -75,9 +107,13 @@ class NewCardForm extends React.Component {
 
     const title = "";
     const priority = "";
+    const created_by = "";
+    const assigned_to = "";
     this.setState({
       title,
-      priority
+      priority,
+      created_by,
+      assigned_to
     });
   }
 
@@ -94,6 +130,14 @@ class NewCardForm extends React.Component {
     this.setState({ priority : event.target.value });
   }
 
+  handleCreatedByChange(event) {
+    this.setState({ created_by : event.target.value });
+  }
+
+  handleAssignedToChange(event) {
+    this.setState({ assigned_to : event.target.value });
+  }
+
   render(){
     return (
       <form onSubmit={this.handleSubmit}>
@@ -102,6 +146,12 @@ class NewCardForm extends React.Component {
         </div>
         <div>
           <input type="text" placeholder="priority" onChange={this.handlePriorityChange} value={this.state.priority} />
+        </div>
+        <div>
+          <input type="text" placeholder="created_by" onChange={this.handleCreatedByChange} value={this.state.created_by} />
+        </div>
+        <div>
+          <input type="text" placeholder="assigned_to" onChange={this.handleAssignedToChange} value={this.state.assigned_to} />
         </div>
         <div>
           <button type="submit">Add Card</button>
@@ -144,9 +194,9 @@ class App extends React.Component{
   render(){
     return (
       <div>
-        <h1>Hello React</h1>
-        <CardList cards={this.state.cards}></CardList>
+        <h1>KANBAN - CARDS</h1>
         <NewCardForm addCard={this.addCard} />
+        <KanbanMap cards={this.state.cards}></KanbanMap>
       </div>
     );
   }
