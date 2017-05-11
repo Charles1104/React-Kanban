@@ -18,43 +18,43 @@ const Card = (props) => (
 );
 
 // TEMPLATE FOR THE THREE COLUMNS
-const CardListQueue = ({ cards, changestate }) => (
+const CardListQueue = ({ cards, changeR }) => (
   <div className="list">
     <h2>QUEUE</h2>
     { cards
       .map( card => <Card card={card}>
-        <input type="button" onClick={() => changestate(card.id)} value="Move right"/> </Card> )
+        <input type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card> )
     }
   </div>
 );
 
-const CardListProgress = ({ cards, changestate }) => (
+const CardListProgress = ({ cards, changeR, changeL }) => (
   <div className="list">
   <h2>PROGRESS</h2>
     { cards
       .map( card => <Card card={card}>
-       <input type="button" onClick={() => changestate(card.id)} value="Move left"/>
-       <input type="button" onClick={() => changestate(card.id)} value="Move right"/> </Card>)
+       <input type="button" onClick={() => changeL(card.id)} value="Move left"/>
+       <input type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card>)
     }
   </div>
 );
 
-const CardListDone = ({ cards, changestate }) => (
+const CardListDone = ({ cards, changeL }) => (
   <div className="list">
   <h2>DONE</h2>
     { cards
       .map( card => <Card card={card}>
-        <input type="button" onClick={() => changestate(card.id)} value="Move left"/> </Card> )
+        <input type="button" onClick={ () => changeL(card.id)} value="Move left"/> </Card> )
     }
   </div>
 );
 
 // TEMPLATE FOR MAIN DIV
-const KanbanMap = ({ cards, right }) => (
+const KanbanMap = ({ cards, right, left }) => (
   <div className="mainPanel">
-    <CardListQueue cards={cards.filter(card => card.status === 'Queue')} changestate={right}/>
-    <CardListProgress cards={cards.filter(card => card.status === 'Progress')} changestate={right}/>
-    <CardListDone cards={cards.filter(card => card.status === 'Done')} changestate={right}/>
+    <CardListQueue cards={cards.filter(card => card.status === 'Queue')} changeR={right} />
+    <CardListProgress cards={cards.filter(card => card.status === 'Progress')} changeR={right} changeL={left}/>
+    <CardListDone cards={cards.filter(card => card.status === 'Done')} changeL={left}/>
   </div>
 );
 
@@ -164,6 +164,7 @@ class App extends React.Component{
 
     this.addCard= this.addCard.bind(this);
     this.moveRight= this.moveRight.bind(this);
+    this.moveLeft= this.moveLeft.bind(this);
   }
 
   componentWillMount() {
@@ -191,12 +192,9 @@ class App extends React.Component{
   moveRight(id){
     let cardArray = this.state.cards.slice(0);
     let cardToUpdate = null;
-    console.log(cardArray);
     for(var i=0; i < cardArray.length; i++){
-      console.log(cardArray[i].status);
       if(cardArray[i].id === id){
         if(cardArray[i].status === "Queue"){
-          console.log("test1");
           cardArray[i].status = "Progress";
         } else{
           cardArray[i].status = "Done";
@@ -218,17 +216,44 @@ class App extends React.Component{
     .then((res) => this.updateCards(cardArray))
   }
 
+  moveLeft(id){
+    let cardArray = this.state.cards.slice(0);
+    let cardToUpdate = null;
+    for(var i=0; i < cardArray.length; i++){
+      if(cardArray[i].id === id){
+        if(cardArray[i].status === "Done"){
+          cardArray[i].status = "Progress";
+        } else{
+          cardArray[i].status = "Queue";
+        }
+        cardToUpdate = cardArray[i];
+        break;
+      }
+    }
+
+    fetch(`/api/cards/${cardToUpdate.id}`,{
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "PUT",
+      body: JSON.stringify({"status":cardToUpdate.status})
+    })
+    .then(function(res){ return res.json(); })
+    .then((res) => this.updateCards(cardArray))
+  }
+
+
   render(){
     return (
       <div>
         <h1>KANBAN - CARDS</h1>
         <NewCardForm addCard={this.addCard} />
-        <KanbanMap cards={this.state.cards} right={this.moveRight}></KanbanMap>
+        <KanbanMap cards={this.state.cards} right={this.moveRight} left={this.moveLeft}></KanbanMap>
       </div>
     );
   }
 };
-
 ReactDOM.render(
   <App />,
   reactContainer
