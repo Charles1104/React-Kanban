@@ -22,3 +22,9 @@ h2 {
   flex-direction: column;
   background-color: white;
   width: 30%; }
+
+.singleCard {
+  background-color: #EEE12C;
+  margin-top: 12px;
+  border: solid black 2px;
+  border-radius: 15px; }

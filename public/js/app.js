@@ -10,46 +10,51 @@ const getCardsFromDb = () => {
 
 //TEMPLATE FOR EACH CARD DISPLAY
 const Card = (props) => (
-  <div>
+  <div className="singleCard">
     <h3>{ props.card.name }</h3>
     <p>{ props.card.priority }</p>
+    <p>{ props.children }</p>
   </div>
 );
 
 // TEMPLATE FOR THE THREE COLUMNS
-const CardListQueue = ({ cards }) => (
+const CardListQueue = ({ cards, changestate }) => (
   <div className="list">
     <h2>QUEUE</h2>
     { cards
-      .map( card => <Card card={card} /> )
+      .map( card => <Card card={card}>
+        <input type="button" onClick={() => changestate(card.id)} value="Move right"/> </Card> )
     }
   </div>
 );
 
-const CardListProgress = ({ cards }) => (
+const CardListProgress = ({ cards, changestate }) => (
   <div className="list">
   <h2>PROGRESS</h2>
     { cards
-      .map( card => <Card card={card} /> )
+      .map( card => <Card card={card}>
+       <input type="button" onClick={() => changestate(card.id)} value="Move left"/>
+       <input type="button" onClick={() => changestate(card.id)} value="Move right"/> </Card>)
     }
   </div>
 );
 
-const CardListDone = ({ cards }) => (
+const CardListDone = ({ cards, changestate }) => (
   <div className="list">
   <h2>DONE</h2>
     { cards
-      .map( card => <Card card={card} /> )
+      .map( card => <Card card={card}>
+        <input type="button" onClick={() => changestate(card.id)} value="Move left"/> </Card> )
     }
   </div>
 );
 
 // TEMPLATE FOR MAIN DIV
-const KanbanMap = ({ cards }) => (
+const KanbanMap = ({ cards, right }) => (
   <div className="mainPanel">
-    <CardListQueue cards={cards.filter(card => card.status === 'queue')}/>
-    <CardListProgress cards={cards.filter(card => card.status === 'progress')}/>
-    <CardListDone cards={cards.filter(card => card.status === 'done')}/>
+    <CardListQueue cards={cards.filter(card => card.status === 'Queue')} changestate={right}/>
+    <CardListProgress cards={cards.filter(card => card.status === 'Progress')} changestate={right}/>
+    <CardListDone cards={cards.filter(card => card.status === 'Done')} changestate={right}/>
   </div>
 );
 
@@ -62,6 +67,7 @@ class NewCardForm extends React.Component {
 
     // set the initial state
     this.state = {
+      id: "",
       name: "",
       priority: "",
       created_by : "",
@@ -76,7 +82,6 @@ class NewCardForm extends React.Component {
   }
 
   addCard(card){
-    // update my parent's books state
     this.props.addCard(card);
 
     const name = "";
@@ -93,8 +98,7 @@ class NewCardForm extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    this.state.status = "queue";
-    console.log(this.state);
+    this.state.status = "Queue";
 
     fetch("/api/cards/",
     {
@@ -106,8 +110,7 @@ class NewCardForm extends React.Component {
       body: JSON.stringify(this.state)
     })
     .then(function(res){ return res.json(); })
-
-    this.addCard(this.state);
+    .then((res) => this.addCard(res));
   }
 
   handleNameChange(event) {
@@ -160,7 +163,7 @@ class App extends React.Component{
     };
 
     this.addCard= this.addCard.bind(this);
-
+    this.moveRight= this.moveRight.bind(this);
   }
 
   componentWillMount() {
@@ -179,12 +182,48 @@ class App extends React.Component{
     });
   }
 
+  updateCards(cardArray){
+    this.setState({
+      cards : cardArray
+    });
+  }
+
+  moveRight(id){
+    let cardArray = this.state.cards.slice(0);
+    let cardToUpdate = null;
+    console.log(cardArray);
+    for(var i=0; i < cardArray.length; i++){
+      console.log(cardArray[i].status);
+      if(cardArray[i].id === id){
+        if(cardArray[i].status === "Queue"){
+          console.log("test1");
+          cardArray[i].status = "Progress";
+        } else{
+          cardArray[i].status = "Done";
+        }
+        cardToUpdate = cardArray[i];
+        break;
+      }
+    }
+
+    fetch(`/api/cards/${cardToUpdate.id}`,{
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "PUT",
+      body: JSON.stringify({"status":cardToUpdate.status})
+    })
+    .then(function(res){ return res.json(); })
+    .then((res) => this.updateCards(cardArray))
+  }
+
   render(){
     return (
       <div>
         <h1>KANBAN - CARDS</h1>
         <NewCardForm addCard={this.addCard} />
-        <KanbanMap cards={this.state.cards}></KanbanMap>
+        <KanbanMap cards={this.state.cards} right={this.moveRight}></KanbanMap>
       </div>
     );
   }

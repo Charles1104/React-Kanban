@@ -10,7 +10,7 @@ module.exports = function(sequelize, DataTypes) {
           defaultValue: "Queue"
         },
         status: {
-          type: DataTypes.STRING,
+          type: DataTypes.ENUM('Queue','Progress','Done'),
           allowNull: false
         },
         assigned_to: {

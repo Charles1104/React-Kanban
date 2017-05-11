@@ -28,4 +28,22 @@ cards.post('/', (req,res) =>{
     .catch( res.json.bind(res));
 });
 
+cards.put('/:id', (req,res) =>{
+  Card.update({"status": req.body.status},{where: {"id": req.params.id}})
+  .then(res.json.bind(res))
+  .catch(error => {
+    console.log(error);
+  });
+});
+
+cards.put('/', (req,res) =>{
+  Card.update({"status": req.body.status},{where: {"id": req.body.id}})
+  .then(res.json.bind(res))
+  .catch(error => {
+    console.log(error);
+  });
+});
+
+
+
 module.exports = cards;
