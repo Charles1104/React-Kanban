@@ -16,6 +16,7 @@ cards.get('/', (req,res) => {
 
 
 cards.post('/', (req,res) =>{
+  console.log(req.body);
   Card.create( {
       "name" : req.body.name,
       "priority" : req.body.priority,

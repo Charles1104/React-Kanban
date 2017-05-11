@@ -5,7 +5,12 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        User.hasMany(models.Card);
+        User.hasMany(models.Card, {
+          foreignKey:{
+            name: 'created_by',
+            allowNull: false
+          }
+        });
       }
     }
   });

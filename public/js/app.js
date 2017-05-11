@@ -1,48 +1,22 @@
 /*jshint esversion: 6 */
 
-
+//GET THE ROOT ELEMENT ON THE MAIN HTML
 const reactContainer = document.getElementById("root");
 
 //DATABASE RETRIEVAL
-const getCardsFromDb= () => new Promise((resolve, reject) => {
-  const cardsFromDb = [
-    {
-      card_id : '1',
-      title : 'Study Javascript',
-      priority: 'urgent',
-      status: 'queue',
-      created_by: 'Charles',
-      assigned_to: 'Mattew'
-    },
-    {
-      card_id : '2',
-      title : 'Study Python',
-      priority: 'Normal',
-      status: 'progress',
-      created_by: 'Thomas',
-      assigned_to: 'Henry'
-    },
-    {
-      card_id : '3',
-      title : 'Study PHP',
-      priority: 'Low',
-      status: 'done',
-      created_by: 'Taylor',
-      assigned_to: 'David'
-    }
-  ];
-  setTimeout(() => resolve(cardsFromDb), 250);
-});
+const getCardsFromDb = () => {
+  return fetch('/api/cards').then( res => res.json());
+}
 
 //TEMPLATE FOR EACH CARD DISPLAY
 const Card = (props) => (
   <div>
-    <h3>{ props.card.title }</h3>
+    <h3>{ props.card.name }</h3>
     <p>{ props.card.priority }</p>
   </div>
 );
 
-// TEMPLATE FOR THREE COLMUNS
+// TEMPLATE FOR THE THREE COLUMNS
 const CardListQueue = ({ cards }) => (
   <div className="list">
     <h2>QUEUE</h2>
@@ -88,13 +62,13 @@ class NewCardForm extends React.Component {
 
     // set the initial state
     this.state = {
-      title: "",
+      name: "",
       priority: "",
-      created_by: "",
+      created_by : "",
       assigned_to: ""
     };
 
-    this.handleTitleChange = this.handleTitleChange.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
     this.handlePriorityChange = this.handlePriorityChange.bind(this);
     this.handleCreatedByChange = this.handleCreatedByChange.bind(this);
     this.handleAssignedToChange = this.handleAssignedToChange.bind(this);
@@ -105,12 +79,12 @@ class NewCardForm extends React.Component {
     // update my parent's books state
     this.props.addCard(card);
 
-    const title = "";
+    const name = "";
     const priority = "";
     const created_by = "";
     const assigned_to = "";
     this.setState({
-      title,
+      name,
       priority,
       created_by,
       assigned_to
@@ -119,11 +93,25 @@ class NewCardForm extends React.Component {
 
   handleSubmit(event) {
     event.preventDefault();
+    this.state.status = "queue";
+    console.log(this.state);
+
+    fetch("/api/cards/",
+    {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "POST",
+      body: JSON.stringify(this.state)
+    })
+    .then(function(res){ return res.json(); })
+
     this.addCard(this.state);
   }
 
-  handleTitleChange(event) {
-    this.setState({ title : event.target.value });
+  handleNameChange(event) {
+    this.setState({ name : event.target.value });
   }
 
   handlePriorityChange(event) {
@@ -142,13 +130,13 @@ class NewCardForm extends React.Component {
     return (
       <form onSubmit={this.handleSubmit}>
         <div>
-          <input type="text" placeholder="title" onChange={this.handleTitleChange} value={this.state.title} />
+          <input type="text" placeholder="name" onChange={this.handleNameChange} value={this.state.name} />
         </div>
         <div>
           <input type="text" placeholder="priority" onChange={this.handlePriorityChange} value={this.state.priority} />
         </div>
         <div>
-          <input type="text" placeholder="created_by" onChange={this.handleCreatedByChange} value={this.state.created_by} />
+          <input type="text" placeholder="created_by " onChange={this.handleCreatedByChange} value={this.state.created_by} />
         </div>
         <div>
           <input type="text" placeholder="assigned_to" onChange={this.handleAssignedToChange} value={this.state.assigned_to} />
