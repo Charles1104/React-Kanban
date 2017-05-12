@@ -10,10 +10,18 @@ const getCardsFromDb = () => {
 
 //TEMPLATE FOR EACH CARD DISPLAY
 const Card = (props) => (
-  <div className="singleCard">
-    <h3>{ props.card.name }</h3>
-    <p>{ props.card.priority }</p>
-    <p>{ props.children }</p>
+  <div className= {props.status} >
+    <div className= "text">
+      <h3>{ props.card.name }</h3>
+      <p> <span>Priority:</span> { props.card.priority }</p>
+      <p> <span>Assigned to:</span> { props.card.Assignor.name}</p>
+      <p> <span>Created by:</span> { props.card.Creator.name }</p>
+      <p> <span>Priority:</span> { props.card.priority }</p>
+      <p> <span>Created at:</span> { props.card.createdAt.slice(0,10).concat(' | ', props.card.createdAt.slice(11,16)) }</p>
+    </div>
+    <div className="buttons">
+      { props.children }
+    </div>
   </div>
 );
 
@@ -22,8 +30,8 @@ const CardListQueue = ({ cards, changeR }) => (
   <div className="list">
     <h2>QUEUE</h2>
     { cards
-      .map( card => <Card card={card}>
-        <input type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card> )
+      .map( card => <Card card={card} status="queue">
+        <input className="buttonR" type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card> )
     }
   </div>
 );
@@ -32,9 +40,9 @@ const CardListProgress = ({ cards, changeR, changeL }) => (
   <div className="list">
   <h2>PROGRESS</h2>
     { cards
-      .map( card => <Card card={card}>
-       <input type="button" onClick={() => changeL(card.id)} value="Move left"/>
-       <input type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card>)
+      .map( card => <Card card={card} status="progress">
+       <input className="buttonL" type="button" onClick={() => changeL(card.id)} value="Move left"/>
+       <input className="buttonR" type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card>)
     }
   </div>
 );
@@ -43,8 +51,8 @@ const CardListDone = ({ cards, changeL }) => (
   <div className="list">
   <h2>DONE</h2>
     { cards
-      .map( card => <Card card={card}>
-        <input type="button" onClick={ () => changeL(card.id)} value="Move left"/> </Card> )
+      .map( card => <Card card={card} status="done">
+        <input className="buttonL" type="button" onClick={ () => changeL(card.id)} value="Move left"/> </Card> )
     }
   </div>
 );
@@ -109,7 +117,7 @@ class NewCardForm extends React.Component {
       method: "POST",
       body: JSON.stringify(this.state)
     })
-    .then(function(res){ return res.json(); })
+    .then(() => fetch('/api/cards')).then( res => res.json())
     .then((res) => this.addCard(res));
   }
 
@@ -131,23 +139,20 @@ class NewCardForm extends React.Component {
 
   render(){
     return (
-      <form onSubmit={this.handleSubmit}>
-        <div>
+      <div >
+        <form className="addPanel" onSubmit={this.handleSubmit}>
           <input type="text" placeholder="name" onChange={this.handleNameChange} value={this.state.name} />
-        </div>
-        <div>
-          <input type="text" placeholder="priority" onChange={this.handlePriorityChange} value={this.state.priority} />
-        </div>
-        <div>
+          <select onChange={this.handlePriorityChange}>
+            <option disable selected value>Priority</option>
+            <option value="Low">Low</option>
+            <option value="normal">Normal</option>
+            <option value="urgent">Urgent</option>
+          </select>
           <input type="text" placeholder="created_by " onChange={this.handleCreatedByChange} value={this.state.created_by} />
-        </div>
-        <div>
           <input type="text" placeholder="assigned_to" onChange={this.handleAssignedToChange} value={this.state.assigned_to} />
-        </div>
-        <div>
-          <button type="submit">Add Card</button>
-        </div>
-      </form>
+          <button className="buttonL" type="submit">Add Card</button>
+        </form>
+      </div>
     )
   }
 }
@@ -163,6 +168,7 @@ class App extends React.Component{
     };
 
     this.addCard= this.addCard.bind(this);
+    this.fetchData= this.fetchData.bind(this);
     this.moveRight= this.moveRight.bind(this);
     this.moveLeft= this.moveLeft.bind(this);
   }
@@ -170,6 +176,7 @@ class App extends React.Component{
   componentWillMount() {
     this.getCards().then( cards => {
       this.setState({ cards });
+      console.log(cards);
     });
   }
 
@@ -177,9 +184,9 @@ class App extends React.Component{
     return getCardsFromDb();
   }
 
-  addCard(card){
+  addCard(cards){
     this.setState({
-      cards : this.state.cards.concat(card)
+      cards : cards
     });
   }
 
@@ -203,17 +210,7 @@ class App extends React.Component{
         break;
       }
     }
-
-    fetch(`/api/cards/${cardToUpdate.id}`,{
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      method: "PUT",
-      body: JSON.stringify({"status":cardToUpdate.status})
-    })
-    .then(function(res){ return res.json(); })
-    .then((res) => this.updateCards(cardArray))
+    this.fetchData(`/api/cards/${cardToUpdate.id}`, cardArray, cardToUpdate)
   }
 
   moveLeft(id){
@@ -230,8 +227,11 @@ class App extends React.Component{
         break;
       }
     }
+    this.fetchData(`/api/cards/${cardToUpdate.id}`, cardArray, cardToUpdate)
+  }
 
-    fetch(`/api/cards/${cardToUpdate.id}`,{
+  fetchData(path, cardArray, cardToUpdate){
+    fetch(path,{
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -251,7 +251,7 @@ class App extends React.Component{
         <NewCardForm addCard={this.addCard} />
         <KanbanMap cards={this.state.cards} right={this.moveRight} left={this.moveLeft}></KanbanMap>
       </div>
-    );
+    );props.addC
   }
 };
 ReactDOM.render(

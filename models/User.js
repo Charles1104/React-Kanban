@@ -11,6 +11,12 @@ module.exports = function(sequelize, DataTypes) {
             allowNull: false
           }
         });
+        User.hasMany(models.Card, {
+          foreignKey:{
+            name: 'assigned_to',
+            allowNull: false
+          }
+        });
       }
     }
   });

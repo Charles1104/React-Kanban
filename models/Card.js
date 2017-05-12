@@ -12,17 +12,21 @@ module.exports = function(sequelize, DataTypes) {
         status: {
           type: DataTypes.ENUM('Queue','Progress','Done'),
           allowNull: false
-        },
-        assigned_to: {
-          type: DataTypes.INTEGER,
-          allowNull: false
         }
       }, {
       classMethods: {
         associate: function(models) {
           Card.belongsTo(models.User, {
+            as: 'Creator',
             foreignKey:{
               name: 'created_by',
+              allowNull: false
+            }
+          });
+          Card.belongsTo(models.User, {
+            as: 'Assignor',
+            foreignKey:{
+              name: 'assigned_to',
               allowNull: false
             }
           });

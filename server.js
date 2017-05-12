@@ -7,10 +7,24 @@ const bodyParser = require('body-parser');
 const db = require('./models');
 const fs = require('fs');
 
-app.use(express.static('./public') );
+// const methodOverride = require('method-override');
+// const cookieParser = require('cookie-parser');
+
 app.use( bodyParser.json() );
 
+//session
+// const session = require('express-session');
+// const RedisStore = require('connect-redis')(session);
+
+//password hashing
+// const saltRounds = 10;
+// const bcrypt = require('bcrypt');
+
+app.use(express.static('./public') );
+
 app.use('/api', require('./api'));
+// app.use('/login', require('./login'));
+// app.use('/register', require('./register'));
 
 app.get('/*', (req, res) => {
   const rs = fs.createReadStream('./public/index.html');
@@ -23,7 +37,7 @@ app.get('/*', (req, res) => {
 });
 
 
-db.sequelize.sync({force:true});
+// db.sequelize.sync({force:true});
 
 app.listen(PORT, () =>{
   console.log(`Listening on ${PORT}`);

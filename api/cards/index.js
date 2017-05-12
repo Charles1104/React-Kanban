@@ -8,7 +8,18 @@ const {User, Card} = require('../../models');
 //const User = db.User;
 
 cards.get('/', (req,res) => {
-  Card.all()
+  Card.all({
+    include: [
+      {
+        model:User,
+        as:"Creator"
+      },
+      {
+        model:User,
+        as:"Assignor"
+      }
+    ]
+  })
     .then((cards) => {
       res.json(cards);
     });
