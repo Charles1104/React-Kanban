@@ -87,3 +87,12 @@ h3 {
 .addPanel {
   display: flex;
   justify-content: space-around; }
+
+.loginPanel {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-around; }
+
+.headerTag {
+  display: flex;
+  justify-content: space-around; }

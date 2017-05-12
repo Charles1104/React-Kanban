@@ -12,7 +12,10 @@ const getCardsFromDb = () => {
 const Card = (props) => (
   <div className= {props.status} >
     <div className= "text">
-      <h3>{ props.card.name }</h3>
+      <div className= "headerTag">
+        <h3>{ props.card.name }</h3>
+        <input className="close" type="button" onClick={ () => props.del(props.card.id)} value="x"/>
+      </div>
       <p> <span>Priority:</span> { props.card.priority }</p>
       <p> <span>Assigned to:</span> { props.card.Assignor.name}</p>
       <p> <span>Created by:</span> { props.card.Creator.name }</p>
@@ -26,45 +29,81 @@ const Card = (props) => (
 );
 
 // TEMPLATE FOR THE THREE COLUMNS
-const CardListQueue = ({ cards, changeR }) => (
+const CardListQueue = ({ cards, changeR, del }) => (
   <div className="list">
     <h2>QUEUE</h2>
     { cards
-      .map( card => <Card card={card} status="queue">
+      .map( card => <Card card={card} status="queue" del={del}>
         <input className="buttonR" type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card> )
     }
   </div>
 );
 
-const CardListProgress = ({ cards, changeR, changeL }) => (
+const CardListProgress = ({ cards, changeR, changeL, del }) => (
   <div className="list">
   <h2>PROGRESS</h2>
     { cards
-      .map( card => <Card card={card} status="progress">
+      .map( card => <Card card={card} status="progress" del={del}>
        <input className="buttonL" type="button" onClick={() => changeL(card.id)} value="Move left"/>
        <input className="buttonR" type="button" onClick={() => changeR(card.id)} value="Move right"/> </Card>)
     }
   </div>
 );
 
-const CardListDone = ({ cards, changeL }) => (
+const CardListDone = ({ cards, changeL, del }) => (
   <div className="list">
   <h2>DONE</h2>
     { cards
-      .map( card => <Card card={card} status="done">
-        <input className="buttonL" type="button" onClick={ () => changeL(card.id)} value="Move left"/> </Card> )
+      .map( card => <Card card={card} status="done" del={del}>
+        <input className="buttonL" type="button" onClick={ () => changeL(card.id)} value="Move left"/></Card> )
     }
   </div>
 );
 
 // TEMPLATE FOR MAIN DIV
-const KanbanMap = ({ cards, right, left }) => (
+const KanbanMap = ({ cards, right, left, del }) => (
   <div className="mainPanel">
-    <CardListQueue cards={cards.filter(card => card.status === 'Queue')} changeR={right} />
-    <CardListProgress cards={cards.filter(card => card.status === 'Progress')} changeR={right} changeL={left}/>
-    <CardListDone cards={cards.filter(card => card.status === 'Done')} changeL={left}/>
+    <CardListQueue cards={cards.filter(card => card.status === 'Queue')} changeR={right} del={del} />
+    <CardListProgress cards={cards.filter(card => card.status === 'Progress')} changeR={right} changeL={left} del={del}/>
+    <CardListDone cards={cards.filter(card => card.status === 'Done')} changeL={left} del={del}/>
   </div>
 );
+
+//CLASS AUTHENTIFICATION
+class Authentification extends React.Component {
+  constructor(props){
+    super(props);
+
+    this.state = {
+      name: "",
+      password: "",
+    };
+
+    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handlePasswordChange = this.handlePasswordChange.bind(this);
+    // this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleNameChange(event) {
+    this.setState({ created_by : event.target.value });
+  }
+
+  handlePasswordChange(event) {
+    this.setState({ assigned_to : event.target.value });
+  }
+
+  render(){
+    return (
+      <div >
+        <form className="loginPanel" onSubmit={this.handleSubmit}>
+          <input type="text" placeholder="name" onChange={this.handleNameChange} value={this.state.name} />
+          <input type="text" placeholder="password " onChange={this.handlePasswordChange} value={this.state.password} />
+          <button className="buttonL" type="submit">Log In</button>
+        </form>
+      </div>
+    )
+  }
+}
 
 //CLASS NEW CARD
 
@@ -171,12 +210,12 @@ class App extends React.Component{
     this.fetchData= this.fetchData.bind(this);
     this.moveRight= this.moveRight.bind(this);
     this.moveLeft= this.moveLeft.bind(this);
+    this.del = this.del.bind(this);
   }
 
   componentWillMount() {
     this.getCards().then( cards => {
       this.setState({ cards });
-      console.log(cards);
     });
   }
 
@@ -230,6 +269,19 @@ class App extends React.Component{
     this.fetchData(`/api/cards/${cardToUpdate.id}`, cardArray, cardToUpdate)
   }
 
+  del(id){
+    let cardArray = this.state.cards.slice(0);
+    let cardToDelete = null;
+    for(var i=0; i < cardArray.length; i++){
+      if(cardArray[i].id === id){
+      cardToDelete = cardArray[i].id;
+      cardArray.splice(i,1);
+      break;
+      }
+    }
+    this.delData(`/api/cards/${cardToDelete}`, cardArray)
+  }
+
   fetchData(path, cardArray, cardToUpdate){
     fetch(path,{
       headers: {
@@ -243,15 +295,28 @@ class App extends React.Component{
     .then((res) => this.updateCards(cardArray))
   }
 
+  delData(path, cardArray){
+    fetch(path,{
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "DELETE",
+    })
+    .then(function(res){ return res.json(); })
+    .then((res) => this.updateCards(cardArray))
+  }
+
 
   render(){
     return (
       <div>
         <h1>KANBAN - CARDS</h1>
+        <Authentification />
         <NewCardForm addCard={this.addCard} />
-        <KanbanMap cards={this.state.cards} right={this.moveRight} left={this.moveLeft}></KanbanMap>
+        <KanbanMap cards={this.state.cards} right={this.moveRight} left={this.moveLeft} del={this.del}></KanbanMap>
       </div>
-    );props.addC
+    )
   }
 };
 ReactDOM.render(

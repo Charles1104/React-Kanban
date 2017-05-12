@@ -47,14 +47,13 @@ cards.put('/:id', (req,res) =>{
   });
 });
 
-cards.put('/', (req,res) =>{
-  Card.update({"status": req.body.status},{where: {"id": req.body.id}})
+cards.delete('/:id', (req,res) =>{
+  Card.destroy({where: {"id": req.params.id}})
   .then(res.json.bind(res))
   .catch(error => {
     console.log(error);
   });
 });
-
 
 
 module.exports = cards;
