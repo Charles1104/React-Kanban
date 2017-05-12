@@ -27,7 +27,6 @@ const bcrypt = require('bcrypt');
 //LOGIN & PASSWORD
 
 // setup sessions
-app.use(cookieParser());
 app.use(session({
   store: new RedisStore(),
   secret: 'keyboard_cat',
@@ -43,7 +42,7 @@ app.use(passport.session());
 passport.use(new LocalStrategy (
   function(username, password, done) {
     console.log('runs before serializing');
-    User.findOne({
+    db.User.findOne({
       where: {
         username: username
       }
@@ -95,7 +94,6 @@ passport.deserializeUser(function(user, done) {
 app.use(express.static('./public') );
 
 app.use('/api', require('./api'));
-// app.use('/login', require('./login'));
 // app.use('/register', require('./register'));
 
 app.get('/*', (req, res) => {

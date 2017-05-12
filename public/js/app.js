@@ -16,9 +16,10 @@ const Card = (props) => (
         <h3>{ props.card.name }</h3>
         <input className="close" type="button" onClick={ () => props.del(props.card.id)} value="x"/>
       </div>
+      {console.log(props.card)}
       <p> <span>Priority:</span> { props.card.priority }</p>
-      <p> <span>Assigned to:</span> { props.card.Assignor.name}</p>
-      <p> <span>Created by:</span> { props.card.Creator.name }</p>
+      <p> <span>Assigned to:</span> { props.card.Assignor.username}</p>
+      <p> <span>Created by:</span> { props.card.Creator.username }</p>
       <p> <span>Priority:</span> { props.card.priority }</p>
       <p> <span>Created at:</span> { props.card.createdAt.slice(0,10).concat(' | ', props.card.createdAt.slice(11,16)) }</p>
     </div>
@@ -75,29 +76,63 @@ class Authentification extends React.Component {
     super(props);
 
     this.state = {
-      name: "",
+      username: "",
       password: "",
     };
 
-    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
-    // this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleNameChange(event) {
-    this.setState({ created_by : event.target.value });
+  handleUsernameChange(event) {
+    this.setState({ username : event.target.value });
   }
 
   handlePasswordChange(event) {
-    this.setState({ assigned_to : event.target.value });
+    this.setState({ password : event.target.value });
+  }
+
+  logg(){
+    this.props.changeStatus();
+
+    const username = "";
+    const password = "";
+    this.setState({
+      username,
+      password
+    });
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+
+    fetch("/api/login",
+    {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: "POST",
+      body: JSON.stringify(this.state)
+    })
+    .then( data => {
+      data.json()
+        .then(data => {
+          if(data.success === true){
+            localStorage.setItem('logged', true);
+            this.logg();
+          }
+        })
+    })
   }
 
   render(){
     return (
       <div >
         <form className="loginPanel" onSubmit={this.handleSubmit}>
-          <input type="text" placeholder="name" onChange={this.handleNameChange} value={this.state.name} />
-          <input type="text" placeholder="password " onChange={this.handlePasswordChange} value={this.state.password} />
+          <input type="text" placeholder="username" onChange={this.handleUsernameChange} value={this.state.username} />
+          <input type="password" placeholder="password " onChange={this.handlePasswordChange} value={this.state.password} />
           <button className="buttonL" type="submit">Log In</button>
         </form>
       </div>
@@ -204,6 +239,7 @@ class App extends React.Component{
 
     this.state = {
       cards : [],
+      logged : false,
     };
 
     this.addCard= this.addCard.bind(this);
@@ -211,6 +247,7 @@ class App extends React.Component{
     this.moveRight= this.moveRight.bind(this);
     this.moveLeft= this.moveLeft.bind(this);
     this.del = this.del.bind(this);
+    this.changeStatus = this.changeStatus.bind(this);
   }
 
   componentWillMount() {
@@ -307,16 +344,30 @@ class App extends React.Component{
     .then((res) => this.updateCards(cardArray))
   }
 
+  changeStatus(){
+    this.setState({
+      logged : true
+    });
+  }
 
   render(){
-    return (
-      <div>
-        <h1>KANBAN - CARDS</h1>
-        <Authentification />
-        <NewCardForm addCard={this.addCard} />
-        <KanbanMap cards={this.state.cards} right={this.moveRight} left={this.moveLeft} del={this.del}></KanbanMap>
-      </div>
-    )
+    if(localStorage.getItem("logged")){
+      return (
+        <div>
+          <h1>KANBAN - CARDS</h1>
+          <Authentification changeStatus={this.changeStatus} />
+          <NewCardForm addCard={this.addCard} />
+          <KanbanMap cards={this.state.cards} right={this.moveRight} left={this.moveLeft} del={this.del}></KanbanMap>
+        </div>
+      )
+    } else {
+      return (
+        <div>
+          <h1>KANBAN - CARDS</h1>
+          <Authentification changeStatus={this.changeStatus}/>
+        </div>
+      )
+    }
   }
 };
 ReactDOM.render(

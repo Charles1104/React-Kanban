@@ -7,6 +7,10 @@ const {User, Card} = require('../../models');
 //const db = require('../../models');
 //const User = db.User;
 
+//password hashing
+const saltRounds = 10;
+const bcrypt = require('bcrypt');
+
 users.get('/:id', (req,res) => {
   if(!isNaN(parseInt(req.params.id))){
     User.findOne({
@@ -18,7 +22,7 @@ users.get('/:id', (req,res) => {
       });
   } else {
     User.findOne({
-      where: {name: req.params.id},
+      where: {username: req.params.id},
     })
     //User.findById
       .then((user) => {
@@ -37,9 +41,16 @@ users.get('/', (req,res) => {
 
 
 users.post('/', (req,res) =>{
-  User.create( {"name" : req.body.name})
-    .then(res.json.bind(res))
-    .catch( res.json.bind(res));
+  bcrypt.genSalt(saltRounds, function(err, salt) {
+    bcrypt.hash(req.body.password, salt, function(err, hash) {
+      User.create( {
+        "username" : req.body.username,
+        "password": hash,
+      })
+        .then(res.json.bind(res))
+        .catch(res.json.bind(res));
+    });
+  });
 });
 
 module.exports = users;
